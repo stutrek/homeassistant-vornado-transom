@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
 import logging
 
@@ -25,8 +26,10 @@ from .const import (
     SPEED_MIN,
     TEMP_MAX,
     TEMP_MIN,
+    WAKE_ATTEMPTS,
+    WAKE_SETTLE_DELAY,
 )
-from .ir import TransomCommand
+from .ir import DUMMY_CODE, TransomCommand
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,6 +95,40 @@ class TransomController:
                 self._hass, self.emitter_entity_id, TransomCommand(code)
             )
 
+    async def _wake(self) -> None:
+        """Wake a sleeping control panel before sending real commands.
+
+        The panel sleeps after inactivity; a single blast from a cross-room IR
+        blaster can miss the short dummy prefix inside a command blob, or land
+        the command before the panel has finished waking. Send dedicated no-op
+        wake blobs spread over real time, then pause for it to wake — the same
+        thing a person does pressing the remote once to wake it, then to act.
+        """
+        for i in range(WAKE_ATTEMPTS):
+            if i:
+                await asyncio.sleep(INTER_PRESS_DELAY)
+            await async_send_command(
+                self._hass, self.emitter_entity_id, TransomCommand(DUMMY_CODE)
+            )
+        if WAKE_ATTEMPTS:
+            await asyncio.sleep(WAKE_SETTLE_DELAY)
+
+    @asynccontextmanager
+    async def _sending(self, *, wake: bool = True, commit: bool = True):
+        """Serialize an IR sequence, waking the panel once before it.
+
+        Holds the send lock so presses from concurrent calls can't interleave.
+        With ``wake`` (the default) a single wake runs before the sequence, not
+        per press, so multi-press ops (stepping temp/speed) wake only once.
+        Commits assumed state on success unless ``commit`` is False.
+        """
+        async with self._lock:
+            if wake:
+                await self._wake()
+            yield
+            if commit:
+                await self._commit()
+
     # The _locked_* methods assume the lock is held and do the actual work;
     # the public methods take the lock and commit once at the end, so compound
     # operations (e.g. set temp -> power on + auto on + arrows) stay atomic.
@@ -120,47 +157,42 @@ class TransomController:
 
     async def async_set_power(self, on: bool) -> None:
         """Turn the fan on or off."""
-        async with self._lock:
+        async with self._sending():
             await self._locked_set_power(on)
-            await self._commit()
 
     async def async_set_speed(self, speed: int) -> None:
         """Set fan speed 1-4; exits auto mode (arrows adjust temp in auto)."""
         speed = max(SPEED_MIN, min(SPEED_MAX, speed))
-        async with self._lock:
+        async with self._sending():
             await self._locked_set_power(True)
             await self._locked_set_auto(False)
             await self._locked_step(speed - self.state.speed)
             self.state.speed = speed
-            await self._commit()
 
     async def async_set_direction(self, direction: str) -> None:
         """Set airflow direction; powers on first (a press while off is lost)."""
-        async with self._lock:
+        async with self._sending():
             await self._locked_set_power(True)
             if self.state.direction != direction:
                 await self._press(CODE_DIRECTION)
                 self.state.direction = direction
-            await self._commit()
 
     async def async_set_auto(self, auto: bool) -> None:
         """Enable or disable auto (thermostat) mode."""
-        async with self._lock:
+        async with self._sending():
             await self._locked_set_auto(auto)
-            await self._commit()
 
     async def async_set_target_temp(self, temp: int) -> None:
         """Set the auto-mode target temperature, enabling auto if needed."""
         temp = max(TEMP_MIN, min(TEMP_MAX, temp))
-        async with self._lock:
+        async with self._sending():
             await self._locked_set_auto(True)
             await self._locked_step(temp - self.state.target_temp)
             self.state.target_temp = temp
-            await self._commit()
 
     async def async_send_button(self, code: int, presses: int) -> None:
-        """Send raw button presses without touching assumed state."""
-        async with self._lock:
+        """Send raw button presses: no wake, no state change (bring-up tool)."""
+        async with self._sending(wake=False, commit=False):
             await self._press(code, times=presses)
 
     async def async_calibrate(self) -> None:
@@ -172,19 +204,18 @@ class TransomController:
         and auto itself are blind toggles with no boundary, so they can only be
         corrected via set_assumed_state.
         """
-        async with self._lock:
-            if not self.state.power:
-                raise ServiceValidationError(
-                    "Calibration needs the fan powered on (assumed off); "
-                    "use set_assumed_state first if that is wrong"
-                )
+        if not self.state.power:
+            raise ServiceValidationError(
+                "Calibration needs the fan powered on (assumed off); "
+                "use set_assumed_state first if that is wrong"
+            )
+        async with self._sending():
             if self.state.auto:
                 await self._press(CODE_DOWN, times=TEMP_MAX - TEMP_MIN)
                 await self._locked_step(self.state.target_temp - TEMP_MIN)
             else:
                 await self._press(CODE_DOWN, times=SPEED_MAX - SPEED_MIN)
                 await self._locked_step(self.state.speed - SPEED_MIN)
-            await self._commit()
 
     async def async_set_assumed_state(
         self,
@@ -195,7 +226,7 @@ class TransomController:
         target_temp: int | None = None,
     ) -> None:
         """Overwrite assumed state without sending IR (drift correction)."""
-        async with self._lock:
+        async with self._sending(wake=False):
             if power is not None:
                 self.state.power = power
             if speed is not None:

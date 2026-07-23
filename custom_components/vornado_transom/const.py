@@ -37,6 +37,16 @@ INTER_PRESS_DELAY: Final = 0.25
 # Extra settle time after entering/leaving auto mode before sending arrows.
 POST_MODE_DELAY: Final = 0.5
 
+# Waking a sleeping panel. Its IR receiver/display sleep after inactivity, and
+# a single cross-room blast from an IR blaster can miss the short dummy prefix
+# inside a command blob (which is why a command "works" only once the panel is
+# already awake). Send this many dedicated no-op wake blobs spread over real
+# time, then pause WAKE_SETTLE_DELAY for the panel to finish waking before the
+# real command follows. Bump WAKE_ATTEMPTS / WAKE_SETTLE_DELAY if a cold fan
+# still misses the first command.
+WAKE_ATTEMPTS: Final = 2
+WAKE_SETTLE_DELAY: Final = 0.5
+
 SERVICE_SET_ASSUMED_STATE: Final = "set_assumed_state"
 SERVICE_SEND_BUTTON: Final = "send_button"
 SERVICE_CALIBRATE: Final = "calibrate"
