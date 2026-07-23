@@ -18,6 +18,8 @@ from homeassistant.util.unit_conversion import TemperatureConverter
 from . import TransomConfigEntry
 from .const import (
     CONF_TEMPERATURE_SENSOR_ENTITY_ID,
+    DIRECTION_DIRECT,
+    DIRECTION_EXHAUST,
     SPEED_MAX,
     SPEED_MIN,
     TEMP_MAX,
@@ -31,6 +33,15 @@ _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
 
 FAN_MODES = ["low", "medium", "high", "turbo"]
+
+# The Transom's airflow direction is exposed as the climate swing mode, since
+# that is the only labelled enum a thermostat card offers. "In" = blowing room
+# air (direct), "Out" = exhausting outward. These stay in sync with the fan
+# entity's forward/reverse direction because both read the same controller state.
+SWING_IN = "In"
+SWING_OUT = "Out"
+DIRECTION_TO_SWING = {DIRECTION_DIRECT: SWING_IN, DIRECTION_EXHAUST: SWING_OUT}
+SWING_TO_DIRECTION = {v: k for k, v in DIRECTION_TO_SWING.items()}
 
 
 async def async_setup_entry(
@@ -58,6 +69,7 @@ class TransomClimate(TransomEntity, ClimateEntity):
     _attr_translation_key = "thermostat"
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.FAN_ONLY, HVACMode.AUTO]
     _attr_fan_modes = FAN_MODES
+    _attr_swing_modes = [SWING_IN, SWING_OUT]
     _attr_temperature_unit = UnitOfTemperature.FAHRENHEIT
     _attr_min_temp = TEMP_MIN
     _attr_max_temp = TEMP_MAX
@@ -65,6 +77,7 @@ class TransomClimate(TransomEntity, ClimateEntity):
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.FAN_MODE
+        | ClimateEntityFeature.SWING_MODE
         | ClimateEntityFeature.TURN_ON
         | ClimateEntityFeature.TURN_OFF
     )
@@ -148,6 +161,12 @@ class TransomClimate(TransomEntity, ClimateEntity):
         """Return the assumed fan speed as a mode name."""
         return FAN_MODES[self.controller.state.speed - SPEED_MIN]
 
+    @property
+    @override
+    def swing_mode(self) -> str:
+        """Return the airflow direction as 'In' or 'Out'."""
+        return DIRECTION_TO_SWING[self.controller.state.direction]
+
     @override
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the mode: off, manual fan, or thermostat."""
@@ -168,6 +187,11 @@ class TransomClimate(TransomEntity, ClimateEntity):
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set a manual speed; drops out of auto mode."""
         await self.controller.async_set_speed(FAN_MODES.index(fan_mode) + SPEED_MIN)
+
+    @override
+    async def async_set_swing_mode(self, swing_mode: str) -> None:
+        """Set the airflow direction ('In' = direct, 'Out' = exhaust)."""
+        await self.controller.async_set_direction(SWING_TO_DIRECTION[swing_mode])
 
     @override
     async def async_turn_on(self) -> None:
