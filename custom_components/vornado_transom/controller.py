@@ -121,12 +121,28 @@ class TransomController:
         await self._locked_set_power(True)
         if self.state.auto == auto:
             return
-        # One press of the thermometer button enables auto mode; from the
-        # remote it takes two presses to disable it (the first only flips the
-        # display between room temp and set temp).
-        await self._press(CODE_AUTO, times=1 if auto else 2)
+        # The thermometer button toggles auto mode: one press enters it (which
+        # also opens the temp-adjust window), one press leaves it.
+        await self._press(CODE_AUTO)
         self.state.auto = auto
         await asyncio.sleep(POST_MODE_DELAY)
+
+    async def _locked_open_temp_window(self) -> None:
+        """(Re)enter auto so the arrows adjust temperature, not speed.
+
+        The arrows only set the target temp for a few seconds after auto is
+        (re)entered; after that they revert to controlling speed. Entering auto
+        opens that window, and back-to-back arrow presses keep it open. If we
+        are already in auto the window has long since closed, so leave and
+        re-enter to reopen a fresh one.
+        """
+        await self._locked_set_power(True)
+        if self.state.auto:
+            await self._press(CODE_AUTO)  # leave auto (else arrows = speed)
+            await asyncio.sleep(INTER_PRESS_DELAY)
+        await self._press(CODE_AUTO)  # (re)enter auto -> fresh temp window
+        self.state.auto = True
+        await asyncio.sleep(INTER_PRESS_DELAY)
 
     async def _locked_step(self, delta: int) -> None:
         if delta:
@@ -160,10 +176,10 @@ class TransomController:
             await self._locked_set_auto(auto)
 
     async def async_set_target_temp(self, temp: int) -> None:
-        """Set the auto-mode target temperature, enabling auto if needed."""
+        """Set the auto-mode target temperature (reopens the temp window first)."""
         temp = max(TEMP_MIN, min(TEMP_MAX, temp))
         async with self._sending():
-            await self._locked_set_auto(True)
+            await self._locked_open_temp_window()
             await self._locked_step(temp - self.state.target_temp)
             self.state.target_temp = temp
 
@@ -188,6 +204,8 @@ class TransomController:
             )
         async with self._sending():
             if self.state.auto:
+                # Reopen the temp window first, or the down presses hit speed.
+                await self._locked_open_temp_window()
                 await self._press(CODE_DOWN, times=TEMP_MAX - TEMP_MIN)
                 await self._locked_step(self.state.target_temp - TEMP_MIN)
             else:
