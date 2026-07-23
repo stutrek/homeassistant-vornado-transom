@@ -47,10 +47,10 @@ class TransomTargetTemp(TransomEntity, NumberEntity):
     @property
     @override
     def native_value(self) -> float:
-        """Return the assumed target temperature."""
-        return self.controller.state.target_temp
+        """Return the desired target temperature."""
+        return self.controller.desired.target_temp
 
     @override
     async def async_set_native_value(self, value: float) -> None:
-        """Set the target temperature (enables auto mode if it's off)."""
-        await self.controller.async_set_target_temp(round(value))
+        """Set the target temperature (implies auto mode, since temp needs it)."""
+        self.controller.request(power=True, auto=True, target_temp=round(value))

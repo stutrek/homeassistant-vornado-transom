@@ -27,4 +27,5 @@ async def async_setup_entry(hass: HomeAssistant, entry: TransomConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, entry: TransomConfigEntry) -> bool:
     """Unload a config entry."""
+    entry.runtime_data.async_shutdown()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

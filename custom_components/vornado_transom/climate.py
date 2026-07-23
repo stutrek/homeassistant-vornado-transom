@@ -142,63 +142,67 @@ class TransomClimate(TransomEntity, ClimateEntity):
     @property
     @override
     def hvac_mode(self) -> HVACMode:
-        """Return the assumed mode."""
-        if not self.controller.state.power:
+        """Return the desired mode."""
+        if not self.controller.desired.power:
             return HVACMode.OFF
-        if self.controller.state.auto:
+        if self.controller.desired.auto:
             return HVACMode.AUTO
         return HVACMode.FAN_ONLY
 
     @property
     @override
     def target_temperature(self) -> float:
-        """Return the assumed target temperature."""
-        return self.controller.state.target_temp
+        """Return the desired target temperature."""
+        return self.controller.desired.target_temp
 
     @property
     @override
     def fan_mode(self) -> str:
-        """Return the assumed fan speed as a mode name."""
-        return FAN_MODES[self.controller.state.speed - SPEED_MIN]
+        """Return the desired fan speed as a mode name."""
+        return FAN_MODES[self.controller.desired.speed - SPEED_MIN]
 
     @property
     @override
     def swing_mode(self) -> str:
-        """Return the airflow direction as 'In' or 'Out'."""
-        return DIRECTION_TO_SWING[self.controller.state.direction]
+        """Return the desired airflow direction as 'In' or 'Out'."""
+        return DIRECTION_TO_SWING[self.controller.desired.direction]
 
     @override
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the mode: off, manual fan, or thermostat."""
         if hvac_mode == HVACMode.OFF:
-            await self.controller.async_set_power(False)
+            self.controller.request(power=False)
         elif hvac_mode == HVACMode.AUTO:
-            await self.controller.async_set_auto(True)
+            self.controller.request(power=True, auto=True)
         else:
-            await self.controller.async_set_auto(False)
+            self.controller.request(power=True, auto=False)
 
     @override
     async def async_set_temperature(self, **kwargs: Any) -> None:
-        """Set the target temperature (enables auto mode if it's off)."""
+        """Set the target temperature (implies auto mode, since temp needs it)."""
         if (temp := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            await self.controller.async_set_target_temp(round(temp))
+            self.controller.request(power=True, auto=True, target_temp=round(temp))
 
     @override
     async def async_set_fan_mode(self, fan_mode: str) -> None:
-        """Set a manual speed; drops out of auto mode."""
-        await self.controller.async_set_speed(FAN_MODES.index(fan_mode) + SPEED_MIN)
+        """Set the fan speed; does not affect auto mode."""
+        self.controller.request(
+            power=True, speed=FAN_MODES.index(fan_mode) + SPEED_MIN
+        )
 
     @override
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set the airflow direction ('In' = direct, 'Out' = exhaust)."""
-        await self.controller.async_set_direction(SWING_TO_DIRECTION[swing_mode])
+        self.controller.request(
+            power=True, direction=SWING_TO_DIRECTION[swing_mode]
+        )
 
     @override
     async def async_turn_on(self) -> None:
         """Turn on the fan."""
-        await self.controller.async_set_power(True)
+        self.controller.request(power=True)
 
     @override
     async def async_turn_off(self) -> None:
         """Turn off the fan."""
-        await self.controller.async_set_power(False)
+        self.controller.request(power=False)

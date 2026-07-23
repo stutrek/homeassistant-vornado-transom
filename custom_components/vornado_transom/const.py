@@ -37,6 +37,11 @@ INTER_PRESS_DELAY: Final = 0.25
 # Extra settle time after entering/leaving auto mode before sending arrows.
 POST_MODE_DELAY: Final = 0.5
 
+# How long to collect changes before emitting one transition. Covers slider
+# drags and multi-control edits (e.g. set speed then temp) so they coalesce
+# into a single planned press sequence instead of several.
+DEBOUNCE_DELAY: Final = 2.0
+
 SERVICE_SET_ASSUMED_STATE: Final = "set_assumed_state"
 SERVICE_SEND_BUTTON: Final = "send_button"
 SERVICE_CALIBRATE: Final = "calibrate"

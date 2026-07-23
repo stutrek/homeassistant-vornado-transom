@@ -113,28 +113,28 @@ class TransomFan(TransomEntity, FanEntity):
     @property
     @override
     def is_on(self) -> bool:
-        """Return whether the fan is assumed on."""
-        return self.controller.state.power
+        """Return whether the fan is desired on."""
+        return self.controller.desired.power
 
     @property
     @override
     def percentage(self) -> int | None:
-        """Return the assumed speed as a percentage."""
-        if not self.controller.state.power:
+        """Return the desired speed as a percentage."""
+        if not self.controller.desired.power:
             return 0
-        return ranged_value_to_percentage(SPEED_RANGE, self.controller.state.speed)
+        return ranged_value_to_percentage(SPEED_RANGE, self.controller.desired.speed)
 
     @property
     @override
     def preset_mode(self) -> str | None:
-        """Return 'Auto' when thermostat mode is assumed active."""
-        return PRESET_MODE_AUTO if self.controller.state.auto else None
+        """Return 'Auto' when thermostat mode is desired active."""
+        return PRESET_MODE_AUTO if self.controller.desired.auto else None
 
     @property
     @override
     def current_direction(self) -> str:
-        """Return the assumed airflow direction."""
-        return TRANSOM_TO_HA_DIRECTION[self.controller.state.direction]
+        """Return the desired airflow direction."""
+        return TRANSOM_TO_HA_DIRECTION[self.controller.desired.direction]
 
     @override
     async def async_turn_on(
@@ -145,36 +145,36 @@ class TransomFan(TransomEntity, FanEntity):
     ) -> None:
         """Turn on the fan, optionally into a speed or the auto preset."""
         if preset_mode == PRESET_MODE_AUTO:
-            await self.controller.async_set_auto(True)
+            self.controller.request(power=True, auto=True)
         elif percentage is not None:
             await self.async_set_percentage(percentage)
         else:
-            await self.controller.async_set_power(True)
+            self.controller.request(power=True)
 
     @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the fan."""
-        await self.controller.async_set_power(False)
+        self.controller.request(power=False)
 
     @override
     async def async_set_percentage(self, percentage: int) -> None:
-        """Set the fan speed; 0 turns it off, any speed exits auto mode."""
+        """Set the fan speed; 0 turns it off. Speed does not affect auto mode."""
         if percentage == 0:
-            await self.controller.async_set_power(False)
+            self.controller.request(power=False)
             return
         speed = math.ceil(percentage_to_ranged_value(SPEED_RANGE, percentage))
-        await self.controller.async_set_speed(speed)
+        self.controller.request(power=True, speed=speed)
 
     @override
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Activate the auto (thermostat) preset."""
-        await self.controller.async_set_auto(preset_mode == PRESET_MODE_AUTO)
+        self.controller.request(power=True, auto=preset_mode == PRESET_MODE_AUTO)
 
     @override
     async def async_set_direction(self, direction: str) -> None:
         """Set airflow direction (forward=direct/in, reverse=exhaust/out)."""
-        await self.controller.async_set_direction(
-            HA_TO_TRANSOM_DIRECTION[direction]
+        self.controller.request(
+            power=True, direction=HA_TO_TRANSOM_DIRECTION[direction]
         )
 
     async def async_service_set_assumed_state(
