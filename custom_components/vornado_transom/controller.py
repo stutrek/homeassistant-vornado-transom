@@ -26,10 +26,8 @@ from .const import (
     SPEED_MIN,
     TEMP_MAX,
     TEMP_MIN,
-    WAKE_ATTEMPTS,
-    WAKE_SETTLE_DELAY,
 )
-from .ir import DUMMY_CODE, TransomCommand
+from .ir import TransomCommand
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -95,36 +93,15 @@ class TransomController:
                 self._hass, self.emitter_entity_id, TransomCommand(code)
             )
 
-    async def _wake(self) -> None:
-        """Wake a sleeping control panel before sending real commands.
-
-        The panel sleeps after inactivity; a single blast from a cross-room IR
-        blaster can miss the short dummy prefix inside a command blob, or land
-        the command before the panel has finished waking. Send dedicated no-op
-        wake blobs spread over real time, then pause for it to wake — the same
-        thing a person does pressing the remote once to wake it, then to act.
-        """
-        for i in range(WAKE_ATTEMPTS):
-            if i:
-                await asyncio.sleep(INTER_PRESS_DELAY)
-            await async_send_command(
-                self._hass, self.emitter_entity_id, TransomCommand(DUMMY_CODE)
-            )
-        if WAKE_ATTEMPTS:
-            await asyncio.sleep(WAKE_SETTLE_DELAY)
-
     @asynccontextmanager
-    async def _sending(self, *, wake: bool = True, commit: bool = True):
-        """Serialize an IR sequence, waking the panel once before it.
+    async def _sending(self, *, commit: bool = True):
+        """Serialize an IR sequence and commit assumed state on success.
 
         Holds the send lock so presses from concurrent calls can't interleave.
-        With ``wake`` (the default) a single wake runs before the sequence, not
-        per press, so multi-press ops (stepping temp/speed) wake only once.
-        Commits assumed state on success unless ``commit`` is False.
+        Commits (persists + notifies entities) on success unless ``commit`` is
+        False (e.g. the raw send_button tool changes no tracked state).
         """
         async with self._lock:
-            if wake:
-                await self._wake()
             yield
             if commit:
                 await self._commit()
@@ -192,7 +169,7 @@ class TransomController:
 
     async def async_send_button(self, code: int, presses: int) -> None:
         """Send raw button presses: no wake, no state change (bring-up tool)."""
-        async with self._sending(wake=False, commit=False):
+        async with self._sending(commit=False):
             await self._press(code, times=presses)
 
     async def async_calibrate(self) -> None:
@@ -226,7 +203,7 @@ class TransomController:
         target_temp: int | None = None,
     ) -> None:
         """Overwrite assumed state without sending IR (drift correction)."""
-        async with self._sending(wake=False):
+        async with self._sending():
             if power is not None:
                 self.state.power = power
             if speed is not None:
