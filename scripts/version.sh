@@ -64,7 +64,9 @@ EOF
 
 git add "$MANIFEST"
 git commit -m "v$NEW"
-git tag "v$NEW"
+# Annotated tag so `git push --follow-tags` actually pushes it (lightweight
+# tags are skipped by --follow-tags, and the release workflow fires on tag push).
+git tag -a "v$NEW" -m "v$NEW"
 
 echo "v$NEW"
 echo "now run: git push --follow-tags"
