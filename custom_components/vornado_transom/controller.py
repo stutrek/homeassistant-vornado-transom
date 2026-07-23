@@ -30,7 +30,6 @@ from .const import (
     DIRECTION_DIRECT,
     DIRECTION_EXHAUST,
     DOMAIN,
-    INTER_PRESS_DELAY,
     POST_MODE_DELAY,
     SPEED_MAX,
     SPEED_MIN,
@@ -162,13 +161,10 @@ class TransomController:
             await self._press(code, times=count)
 
     async def _press(self, code: int, times: int = 1) -> None:
-        """Send `times` distinct presses of a button."""
-        for i in range(times):
-            if i:
-                await asyncio.sleep(INTER_PRESS_DELAY)
-            await async_send_command(
-                self._hass, self.emitter_entity_id, TransomCommand(code)
-            )
+        """Send `times` presses of a button as one burst-train transmission."""
+        await async_send_command(
+            self._hass, self.emitter_entity_id, TransomCommand(code, presses=times)
+        )
 
     async def _commit(self) -> None:
         """Persist assumed state and notify entities."""

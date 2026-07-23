@@ -29,9 +29,14 @@ BIT_ZERO_SPACE = -1320
 
 COMMAND_BITS = 12
 FRAME_REPEATS = 3
-# Silence between the three repeated command frames, folded into a frame's
+# Silence between the three frames of a single press, folded into a frame's
 # trailing space (matches the ~9 ms gap the real remote leaves between frames).
 INTER_FRAME_GAP_US = 9200
+# Silence between repeated presses of the same button, sent as ONE burst train
+# in a single transmission. The real remote leaves ~85-110 ms between presses
+# (a 3-quick-taps capture measured 84/107/109 ms); a separate transmission per
+# press dropped presses, so we emit them all in one blob like the remote does.
+INTER_PRESS_GAP_US = 100000
 
 
 def _frame(code: int) -> list[int]:
@@ -58,18 +63,30 @@ def _append_frame(timings: list[int], code: int, gap_after_us: int | None) -> No
 
 
 class TransomCommand(Command):
-    """A single button press for the Vornado Transom."""
+    """One or more presses of a Vornado Transom button, as one transmission.
 
-    def __init__(self, code: int) -> None:
-        """Initialize with a 12-bit button code."""
+    ``presses`` repeats the button like tapping it that many times: each press
+    is the command frame sent three times ~9 ms apart, and presses are ~100 ms
+    apart, all in a single burst train (see the module docstring).
+    """
+
+    def __init__(self, code: int, presses: int = 1) -> None:
+        """Initialize with a 12-bit button code and a press count."""
         super().__init__(modulation=CARRIER_HZ)
         self.code = code
+        self.presses = presses
 
     @override
     def get_raw_timings(self) -> list[int]:
-        """Return the raw timings for one press: the command frame x3."""
+        """Return the raw timings for ``presses`` presses of the button."""
         timings: list[int] = []
-        for repeat in range(FRAME_REPEATS):
-            last = repeat == FRAME_REPEATS - 1
-            _append_frame(timings, self.code, None if last else INTER_FRAME_GAP_US)
+        for press in range(self.presses):
+            last_press = press == self.presses - 1
+            for repeat in range(FRAME_REPEATS):
+                last_frame = repeat == FRAME_REPEATS - 1
+                if last_frame:
+                    gap = None if last_press else INTER_PRESS_GAP_US
+                else:
+                    gap = INTER_FRAME_GAP_US
+                _append_frame(timings, self.code, gap)
         return timings

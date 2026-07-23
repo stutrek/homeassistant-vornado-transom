@@ -31,11 +31,10 @@ TEMP_MAX: Final = 90
 DIRECTION_DIRECT: Final = "direct"
 DIRECTION_EXHAUST: Final = "exhaust"
 
-# Seconds between emulated button presses. The fan treats an IR gap >8 ms as a
-# button release; a full half second gives the panel time to register each
-# press (0.25 s was too fast for it to keep up).
-INTER_PRESS_DELAY: Final = 0.5
-# Extra settle time after entering/leaving auto mode before sending arrows.
+# Settle time between distinct press groups (e.g. after a power/auto press
+# before the next button). Repeated presses of the SAME button are not spaced
+# by this — they go out as one burst train inside a single transmission (see
+# INTER_PRESS_GAP_US in ir.py).
 POST_MODE_DELAY: Final = 0.5
 
 # How long to collect changes before emitting one transition. Covers slider
