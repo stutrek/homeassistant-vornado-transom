@@ -4,10 +4,10 @@
   "codeowners": ["@stutrek"],
   "config_flow": true,
   "dependencies": ["infrared"],
-  "documentation": "https://github.com/stutrek/vornado-transom",
+  "documentation": "https://github.com/stutrek/homeassistant-vornado-transom",
   "integration_type": "device",
   "iot_class": "assumed_state",
-  "issue_tracker": "https://github.com/stutrek/vornado-transom/issues",
+  "issue_tracker": "https://github.com/stutrek/homeassistant-vornado-transom/issues",
   "requirements": [],
   "version": "0.1.0"
 }
