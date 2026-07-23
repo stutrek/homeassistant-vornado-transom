@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Emisor de infrarrojos",
+          "temperature_sensor_entity_id": "Sensor de temperatura ambiente (opcional)",
+          "name": "Nombre"
+        },
+        "data_description": {
+          "infrared_entity_id": "El emisor IR con línea de visión hacia el ventilador.",
+          "temperature_sensor_entity_id": "Se muestra como temperatura actual en el termostato; el ventilador no informa de nada por sí mismo."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "No se encontraron entidades de emisor de infrarrojos. Configura primero un emisor IR (p. ej., Broadlink)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Emisor de infrarrojos",
+          "temperature_sensor_entity_id": "Sensor de temperatura ambiente (opcional)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Termostato"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Temperatura objetivo"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Establecer estado supuesto",
+      "description": "Corrige el estado registrado sin enviar IR. Úsalo después de usar el mando físico o el panel, o cuando se haya perdido un comando.",
+      "fields": {
+        "power": { "name": "Encendido", "description": "Si el ventilador está realmente encendido." },
+        "speed": { "name": "Velocidad", "description": "Velocidad real del ventilador (1-4)." },
+        "direction": { "name": "Dirección", "description": "Dirección real del flujo de aire." },
+        "auto": { "name": "Modo automático", "description": "Si el modo automático (termostato) está realmente activo." },
+        "target_temp": { "name": "Temperatura objetivo", "description": "Temperatura objetivo real en °F." }
+      }
+    },
+    "send_button": {
+      "name": "Enviar botón",
+      "description": "Envía pulsaciones de botón del mando sin actualizar el estado supuesto. Útil para pruebas y diagnóstico.",
+      "fields": {
+        "button": { "name": "Botón", "description": "Qué botón del mando pulsar." },
+        "presses": { "name": "Pulsaciones", "description": "Número de pulsaciones individuales." }
+      }
+    },
+    "calibrate": {
+      "name": "Calibrar",
+      "description": "Resincroniza llevando el valor a un límite conocido: con el modo automático apagado, fuerza la velocidad a 1 y vuelve a la velocidad supuesta; con el modo automático activo, fuerza el objetivo a 60 °F y vuelve al objetivo supuesto."
+    }
+  }
+}

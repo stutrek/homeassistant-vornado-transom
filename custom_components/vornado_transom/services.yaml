@@ -1,0 +1,67 @@
+set_assumed_state:
+  target:
+    entity:
+      integration: vornado_transom
+      domain: fan
+  fields:
+    power:
+      required: false
+      selector:
+        boolean:
+    speed:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+    direction:
+      required: false
+      selector:
+        select:
+          options:
+            - direct
+            - exhaust
+    auto:
+      required: false
+      selector:
+        boolean:
+    target_temp:
+      required: false
+      selector:
+        number:
+          min: 60
+          max: 90
+          unit_of_measurement: "°F"
+          mode: box
+
+send_button:
+  target:
+    entity:
+      integration: vornado_transom
+      domain: fan
+  fields:
+    button:
+      required: true
+      selector:
+        select:
+          options:
+            - power
+            - up
+            - down
+            - direction
+            - auto
+    presses:
+      required: false
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 40
+          mode: box
+
+calibrate:
+  target:
+    entity:
+      integration: vornado_transom
+      domain: fan

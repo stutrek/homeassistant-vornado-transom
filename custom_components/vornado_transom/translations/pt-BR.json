@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Emissor infravermelho",
+          "temperature_sensor_entity_id": "Sensor de temperatura ambiente (opcional)",
+          "name": "Nome"
+        },
+        "data_description": {
+          "infrared_entity_id": "O emissor IR com linha de visão para o ventilador.",
+          "temperature_sensor_entity_id": "Exibido como temperatura atual no termostato; o ventilador em si não reporta nada."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "Nenhuma entidade de emissor infravermelho encontrada. Configure primeiro um emissor IR (ex.: Broadlink)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Emissor infravermelho",
+          "temperature_sensor_entity_id": "Sensor de temperatura ambiente (opcional)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Termostato"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Temperatura alvo"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Definir estado presumido",
+      "description": "Corrige o estado rastreado sem enviar IR. Use depois que o controle remoto físico ou o painel foi usado, ou quando um comando foi perdido.",
+      "fields": {
+        "power": { "name": "Energia", "description": "Se o ventilador está realmente ligado." },
+        "speed": { "name": "Velocidade", "description": "Velocidade real do ventilador (1-4)." },
+        "direction": { "name": "Direção", "description": "Direção real do fluxo de ar." },
+        "auto": { "name": "Modo automático", "description": "Se o modo automático (termostato) está realmente ativo." },
+        "target_temp": { "name": "Temperatura alvo", "description": "Temperatura alvo real em °F." }
+      }
+    },
+    "send_button": {
+      "name": "Enviar botão",
+      "description": "Envia pressionamentos brutos de botões do controle remoto sem atualizar o estado presumido. Útil para testes e diagnóstico.",
+      "fields": {
+        "button": { "name": "Botão", "description": "Qual botão do controle remoto pressionar." },
+        "presses": { "name": "Pressionamentos", "description": "Número de pressionamentos distintos." }
+      }
+    },
+    "calibrate": {
+      "name": "Calibrar",
+      "description": "Ressincroniza levando o valor a um limite conhecido: com o modo automático desligado, força a velocidade para 1 e volta à velocidade presumida; com o modo automático ligado, força o alvo para 60 °F e volta ao alvo presumido."
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "赤外線送信機",
+          "temperature_sensor_entity_id": "室温センサー（任意）",
+          "name": "名前"
+        },
+        "data_description": {
+          "infrared_entity_id": "ファンとの間に見通しのある赤外線送信機。",
+          "temperature_sensor_entity_id": "サーモスタットの現在温度として表示されます。ファン自体は何も報告しません。"
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "赤外線送信機エンティティが見つかりません。先に赤外線送信機（例：Broadlink）をセットアップしてください。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "赤外線送信機",
+          "temperature_sensor_entity_id": "室温センサー（任意）"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "サーモスタット"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "目標温度"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "想定状態を設定",
+      "description": "赤外線を送信せずに、追跡中の状態を修正します。物理リモコンや本体パネルを操作した後、またはコマンドが届かなかった場合に使用します。",
+      "fields": {
+        "power": { "name": "電源", "description": "ファンが実際にオンになっているかどうか。" },
+        "speed": { "name": "風量", "description": "実際のファン風量（1〜4）。" },
+        "direction": { "name": "方向", "description": "実際の気流の向き。" },
+        "auto": { "name": "自動モード", "description": "自動（サーモスタット）モードが実際に有効かどうか。" },
+        "target_temp": { "name": "目標温度", "description": "実際の目標温度（°F）。" }
+      }
+    },
+    "send_button": {
+      "name": "ボタンを送信",
+      "description": "想定状態を更新せずに、リモコンのボタン押下をそのまま送信します。テストやトラブルシューティングに便利です。",
+      "fields": {
+        "button": { "name": "ボタン", "description": "押すリモコンのボタン。" },
+        "presses": { "name": "押下回数", "description": "個別のボタン押下の回数。" }
+      }
+    },
+    "calibrate": {
+      "name": "キャリブレーション",
+      "description": "既知の端まで動かして再同期します。自動モードがオフの場合は風量を 1 まで下げてから想定風量に戻し、自動モードがオンの場合は目標温度を 60°F まで下げてから想定目標に戻します。"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Infrarot-Sender",
+          "temperature_sensor_entity_id": "Raumtemperatursensor (optional)",
+          "name": "Name"
+        },
+        "data_description": {
+          "infrared_entity_id": "Der IR-Blaster mit Sichtverbindung zum Ventilator.",
+          "temperature_sensor_entity_id": "Wird als aktuelle Temperatur am Thermostat angezeigt; der Ventilator selbst meldet nichts zurück."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "Keine Infrarot-Sender-Entitäten gefunden. Richte zuerst einen IR-Blaster (z. B. Broadlink) ein."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Infrarot-Sender",
+          "temperature_sensor_entity_id": "Raumtemperatursensor (optional)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Thermostat"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Zieltemperatur"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Angenommenen Zustand setzen",
+      "description": "Korrigiert den verfolgten Zustand, ohne IR zu senden. Zu verwenden, nachdem die Original-Fernbedienung oder das Bedienfeld benutzt wurde oder ein Befehl verloren ging.",
+      "fields": {
+        "power": { "name": "Ein/Aus", "description": "Ob der Ventilator tatsächlich eingeschaltet ist." },
+        "speed": { "name": "Geschwindigkeit", "description": "Tatsächliche Stufe (1–4)." },
+        "direction": { "name": "Richtung", "description": "Tatsächliche Luftstromrichtung." },
+        "auto": { "name": "Automatikmodus", "description": "Ob der Automatikmodus (Thermostat) tatsächlich aktiv ist." },
+        "target_temp": { "name": "Zieltemperatur", "description": "Tatsächliche Zieltemperatur in °F." }
+      }
+    },
+    "send_button": {
+      "name": "Taste senden",
+      "description": "Sendet rohe Tastendrücke der Fernbedienung, ohne den angenommenen Zustand zu ändern. Nützlich zum Testen und zur Fehlersuche.",
+      "fields": {
+        "button": { "name": "Taste", "description": "Welche Taste der Fernbedienung gedrückt werden soll." },
+        "presses": { "name": "Tastendrücke", "description": "Anzahl der einzelnen Tastendrücke." }
+      }
+    },
+    "calibrate": {
+      "name": "Kalibrieren",
+      "description": "Synchronisiert über einen bekannten Anschlag neu: Bei ausgeschaltetem Automatikmodus wird die Stufe auf 1 und dann zurück auf die angenommene Stufe gestellt; bei aktivem Automatikmodus wird das Ziel auf 60 °F und dann zurück auf das angenommene Ziel gestellt."
+    }
+  }
+}

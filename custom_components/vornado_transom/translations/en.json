@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Infrared emitter",
+          "temperature_sensor_entity_id": "Room temperature sensor (optional)",
+          "name": "Name"
+        },
+        "data_description": {
+          "infrared_entity_id": "The IR blaster with line of sight to the fan.",
+          "temperature_sensor_entity_id": "Shown as the current temperature on the thermostat; the fan itself reports nothing back."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "No infrared emitter entities found. Set up an IR blaster (e.g. Broadlink) first."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Infrared emitter",
+          "temperature_sensor_entity_id": "Room temperature sensor (optional)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Thermostat"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Target temperature"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Set assumed state",
+      "description": "Corrects the tracked state without sending IR. Use after the physical remote or panel was used, or when a command was missed.",
+      "fields": {
+        "power": { "name": "Power", "description": "Whether the fan is actually on." },
+        "speed": { "name": "Speed", "description": "Actual fan speed (1-4)." },
+        "direction": { "name": "Direction", "description": "Actual airflow direction." },
+        "auto": { "name": "Auto mode", "description": "Whether auto (thermostat) mode is actually active." },
+        "target_temp": { "name": "Target temperature", "description": "Actual target temperature in °F." }
+      }
+    },
+    "send_button": {
+      "name": "Send button",
+      "description": "Sends raw remote button presses without updating the assumed state. Useful for testing and troubleshooting.",
+      "fields": {
+        "button": { "name": "Button", "description": "Which remote button to press." },
+        "presses": { "name": "Presses", "description": "Number of distinct presses." }
+      }
+    },
+    "calibrate": {
+      "name": "Calibrate",
+      "description": "Re-syncs by stepping to a known boundary: with auto off, forces speed to 1 then back to the assumed speed; with auto on, forces the target to 60°F then back to the assumed target."
+    }
+  }
+}

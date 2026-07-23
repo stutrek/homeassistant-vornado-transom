@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Émetteur infrarouge",
+          "temperature_sensor_entity_id": "Capteur de température ambiante (facultatif)",
+          "name": "Nom"
+        },
+        "data_description": {
+          "infrared_entity_id": "L'émetteur IR ayant une ligne de vue vers le ventilateur.",
+          "temperature_sensor_entity_id": "Affiché comme température actuelle sur le thermostat ; le ventilateur lui-même ne renvoie aucune information."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "Aucune entité d'émetteur infrarouge trouvée. Configurez d'abord un émetteur IR (ex. Broadlink)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Émetteur infrarouge",
+          "temperature_sensor_entity_id": "Capteur de température ambiante (facultatif)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Thermostat"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Température cible"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Définir l'état supposé",
+      "description": "Corrige l'état suivi sans envoyer d'IR. À utiliser après l'usage de la télécommande physique ou du panneau, ou lorsqu'une commande a été perdue.",
+      "fields": {
+        "power": { "name": "Alimentation", "description": "Si le ventilateur est réellement allumé." },
+        "speed": { "name": "Vitesse", "description": "Vitesse réelle du ventilateur (1-4)." },
+        "direction": { "name": "Direction", "description": "Direction réelle du flux d'air." },
+        "auto": { "name": "Mode automatique", "description": "Si le mode automatique (thermostat) est réellement actif." },
+        "target_temp": { "name": "Température cible", "description": "Température cible réelle en °F." }
+      }
+    },
+    "send_button": {
+      "name": "Envoyer un bouton",
+      "description": "Envoie des appuis bruts de la télécommande sans mettre à jour l'état supposé. Utile pour les tests et le dépannage.",
+      "fields": {
+        "button": { "name": "Bouton", "description": "Le bouton de la télécommande à presser." },
+        "presses": { "name": "Appuis", "description": "Nombre d'appuis distincts." }
+      }
+    },
+    "calibrate": {
+      "name": "Calibrer",
+      "description": "Resynchronise en allant jusqu'à une butée connue : mode automatique désactivé, force la vitesse à 1 puis revient à la vitesse supposée ; mode automatique activé, force la cible à 60 °F puis revient à la cible supposée."
+    }
+  }
+}

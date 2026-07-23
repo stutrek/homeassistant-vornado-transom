@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Emettitore a infrarossi",
+          "temperature_sensor_entity_id": "Sensore di temperatura ambiente (facoltativo)",
+          "name": "Nome"
+        },
+        "data_description": {
+          "infrared_entity_id": "L'emettitore IR con linea di vista verso il ventilatore.",
+          "temperature_sensor_entity_id": "Mostrato come temperatura attuale sul termostato; il ventilatore non riporta nulla da solo."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "Nessuna entità emettitore a infrarossi trovata. Configura prima un emettitore IR (ad es. Broadlink)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Emettitore a infrarossi",
+          "temperature_sensor_entity_id": "Sensore di temperatura ambiente (facoltativo)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Termostato"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Temperatura obiettivo"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Imposta stato presunto",
+      "description": "Corregge lo stato registrato senza inviare IR. Da usare dopo l'uso del telecomando fisico o del pannello, o quando un comando è andato perso.",
+      "fields": {
+        "power": { "name": "Alimentazione", "description": "Se il ventilatore è realmente acceso." },
+        "speed": { "name": "Velocità", "description": "Velocità reale del ventilatore (1-4)." },
+        "direction": { "name": "Direzione", "description": "Direzione reale del flusso d'aria." },
+        "auto": { "name": "Modalità automatica", "description": "Se la modalità automatica (termostato) è realmente attiva." },
+        "target_temp": { "name": "Temperatura obiettivo", "description": "Temperatura obiettivo reale in °F." }
+      }
+    },
+    "send_button": {
+      "name": "Invia pulsante",
+      "description": "Invia pressioni grezze dei pulsanti del telecomando senza aggiornare lo stato presunto. Utile per test e diagnostica.",
+      "fields": {
+        "button": { "name": "Pulsante", "description": "Quale pulsante del telecomando premere." },
+        "presses": { "name": "Pressioni", "description": "Numero di pressioni distinte." }
+      }
+    },
+    "calibrate": {
+      "name": "Calibra",
+      "description": "Risincronizza portando il valore a un limite noto: con la modalità automatica spenta, forza la velocità a 1 e poi torna alla velocità presunta; con la modalità automatica attiva, forza l'obiettivo a 60 °F e poi torna all'obiettivo presunto."
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Infraröd sändare",
+          "temperature_sensor_entity_id": "Rumstemperatursensor (valfritt)",
+          "name": "Namn"
+        },
+        "data_description": {
+          "infrared_entity_id": "IR-sändaren med fri sikt mot fläkten.",
+          "temperature_sensor_entity_id": "Visas som aktuell temperatur på termostaten; fläkten själv rapporterar ingenting."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "Inga infraröda sändarentiteter hittades. Konfigurera först en IR-sändare (t.ex. Broadlink)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Infraröd sändare",
+          "temperature_sensor_entity_id": "Rumstemperatursensor (valfritt)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Termostat"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Måltemperatur"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Ange antaget tillstånd",
+      "description": "Korrigerar det spårade tillståndet utan att skicka IR. Använd efter att den fysiska fjärrkontrollen eller panelen har använts, eller när ett kommando har missats.",
+      "fields": {
+        "power": { "name": "Ström", "description": "Om fläkten faktiskt är på." },
+        "speed": { "name": "Hastighet", "description": "Fläktens faktiska hastighet (1-4)." },
+        "direction": { "name": "Riktning", "description": "Luftflödets faktiska riktning." },
+        "auto": { "name": "Automatiskt läge", "description": "Om det automatiska läget (termostat) faktiskt är aktivt." },
+        "target_temp": { "name": "Måltemperatur", "description": "Faktisk måltemperatur i °F." }
+      }
+    },
+    "send_button": {
+      "name": "Skicka knapp",
+      "description": "Skickar råa knapptryckningar från fjärrkontrollen utan att uppdatera det antagna tillståndet. Användbart för test och felsökning.",
+      "fields": {
+        "button": { "name": "Knapp", "description": "Vilken knapp på fjärrkontrollen som ska tryckas." },
+        "presses": { "name": "Tryckningar", "description": "Antal separata tryckningar." }
+      }
+    },
+    "calibrate": {
+      "name": "Kalibrera",
+      "description": "Synkroniserar om genom att gå till en känd gräns: med automatiskt läge av tvingas hastigheten till 1 och sedan tillbaka till den antagna hastigheten; med automatiskt läge på tvingas målet till 60 °F och sedan tillbaka till det antagna målet."
+    }
+  }
+}

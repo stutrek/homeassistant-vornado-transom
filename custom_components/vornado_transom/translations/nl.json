@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Infraroodzender",
+          "temperature_sensor_entity_id": "Kamertemperatuursensor (optioneel)",
+          "name": "Naam"
+        },
+        "data_description": {
+          "infrared_entity_id": "De IR-zender met zichtlijn naar de ventilator.",
+          "temperature_sensor_entity_id": "Wordt getoond als huidige temperatuur op de thermostaat; de ventilator zelf meldt niets terug."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "Geen infraroodzender-entiteiten gevonden. Stel eerst een IR-zender in (bijv. Broadlink)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Infraroodzender",
+          "temperature_sensor_entity_id": "Kamertemperatuursensor (optioneel)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Thermostaat"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Doeltemperatuur"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Aangenomen status instellen",
+      "description": "Corrigeert de bijgehouden status zonder IR te versturen. Gebruik dit nadat de fysieke afstandsbediening of het paneel is gebruikt, of wanneer een commando is gemist.",
+      "fields": {
+        "power": { "name": "Aan/uit", "description": "Of de ventilator daadwerkelijk aan staat." },
+        "speed": { "name": "Snelheid", "description": "Werkelijke ventilatorsnelheid (1-4)." },
+        "direction": { "name": "Richting", "description": "Werkelijke richting van de luchtstroom." },
+        "auto": { "name": "Automatische modus", "description": "Of de automatische modus (thermostaat) daadwerkelijk actief is." },
+        "target_temp": { "name": "Doeltemperatuur", "description": "Werkelijke doeltemperatuur in °F." }
+      }
+    },
+    "send_button": {
+      "name": "Knop versturen",
+      "description": "Verstuurt ruwe knopdrukken van de afstandsbediening zonder de aangenomen status bij te werken. Handig voor testen en probleemoplossing.",
+      "fields": {
+        "button": { "name": "Knop", "description": "Welke knop van de afstandsbediening ingedrukt moet worden." },
+        "presses": { "name": "Drukken", "description": "Aantal afzonderlijke knopdrukken." }
+      }
+    },
+    "calibrate": {
+      "name": "Kalibreren",
+      "description": "Synchroniseert opnieuw via een bekende grens: met automatische modus uit wordt de snelheid naar 1 geforceerd en daarna terug naar de aangenomen snelheid; met automatische modus aan wordt het doel naar 60 °F geforceerd en daarna terug naar het aangenomen doel."
+    }
+  }
+}

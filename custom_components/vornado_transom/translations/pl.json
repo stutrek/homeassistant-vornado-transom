@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "Nadajnik podczerwieni",
+          "temperature_sensor_entity_id": "Czujnik temperatury w pomieszczeniu (opcjonalnie)",
+          "name": "Nazwa"
+        },
+        "data_description": {
+          "infrared_entity_id": "Nadajnik IR z linią widzenia do wentylatora.",
+          "temperature_sensor_entity_id": "Wyświetlany jako bieżąca temperatura na termostacie; sam wentylator niczego nie raportuje."
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "Nie znaleziono encji nadajnika podczerwieni. Najpierw skonfiguruj nadajnik IR (np. Broadlink)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "Nadajnik podczerwieni",
+          "temperature_sensor_entity_id": "Czujnik temperatury w pomieszczeniu (opcjonalnie)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Termostat"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Temperatura docelowa"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "Ustaw zakładany stan",
+      "description": "Koryguje śledzony stan bez wysyłania IR. Użyj po skorzystaniu z fizycznego pilota lub panelu albo gdy polecenie zostało zgubione.",
+      "fields": {
+        "power": { "name": "Zasilanie", "description": "Czy wentylator jest faktycznie włączony." },
+        "speed": { "name": "Prędkość", "description": "Rzeczywista prędkość wentylatora (1-4)." },
+        "direction": { "name": "Kierunek", "description": "Rzeczywisty kierunek przepływu powietrza." },
+        "auto": { "name": "Tryb automatyczny", "description": "Czy tryb automatyczny (termostat) jest faktycznie aktywny." },
+        "target_temp": { "name": "Temperatura docelowa", "description": "Rzeczywista temperatura docelowa w °F." }
+      }
+    },
+    "send_button": {
+      "name": "Wyślij przycisk",
+      "description": "Wysyła surowe naciśnięcia przycisków pilota bez aktualizowania zakładanego stanu. Przydatne do testów i diagnostyki.",
+      "fields": {
+        "button": { "name": "Przycisk", "description": "Który przycisk pilota nacisnąć." },
+        "presses": { "name": "Naciśnięcia", "description": "Liczba osobnych naciśnięć." }
+      }
+    },
+    "calibrate": {
+      "name": "Kalibruj",
+      "description": "Synchronizuje ponownie, dochodząc do znanej granicy: przy wyłączonym trybie automatycznym wymusza prędkość 1, a następnie wraca do zakładanej prędkości; przy włączonym trybie automatycznym wymusza cel 60 °F, a następnie wraca do zakładanego celu."
+    }
+  }
+}

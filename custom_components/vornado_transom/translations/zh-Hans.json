@@ -1,0 +1,68 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vornado Transom",
+        "data": {
+          "infrared_entity_id": "红外发射器",
+          "temperature_sensor_entity_id": "室温传感器（可选）",
+          "name": "名称"
+        },
+        "data_description": {
+          "infrared_entity_id": "与风扇之间有视线通路的红外发射器。",
+          "temperature_sensor_entity_id": "在恒温器上显示为当前温度；风扇本身不会回传任何信息。"
+        }
+      }
+    },
+    "abort": {
+      "no_emitters": "未找到红外发射器实体。请先设置一个红外发射器（例如 Broadlink）。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "infrared_entity_id": "红外发射器",
+          "temperature_sensor_entity_id": "室温传感器（可选）"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "恒温器"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "目标温度"
+      }
+    }
+  },
+  "services": {
+    "set_assumed_state": {
+      "name": "设置假定状态",
+      "description": "在不发送红外信号的情况下校正跟踪的状态。在使用了实体遥控器或面板之后，或某条命令丢失时使用。",
+      "fields": {
+        "power": { "name": "电源", "description": "风扇是否实际处于开启状态。" },
+        "speed": { "name": "风速", "description": "风扇的实际风速（1-4）。" },
+        "direction": { "name": "方向", "description": "实际的气流方向。" },
+        "auto": { "name": "自动模式", "description": "自动（恒温）模式是否实际处于激活状态。" },
+        "target_temp": { "name": "目标温度", "description": "实际的目标温度（°F）。" }
+      }
+    },
+    "send_button": {
+      "name": "发送按键",
+      "description": "发送原始遥控器按键，不更新假定状态。适用于测试和排查问题。",
+      "fields": {
+        "button": { "name": "按键", "description": "要按下的遥控器按键。" },
+        "presses": { "name": "按键次数", "description": "独立按键的次数。" }
+      }
+    },
+    "calibrate": {
+      "name": "校准",
+      "description": "通过走到已知边界来重新同步：自动模式关闭时，将风速强制降到 1 再回到假定风速；自动模式开启时，将目标温度强制降到 60°F 再回到假定目标。"
+    }
+  }
+}
